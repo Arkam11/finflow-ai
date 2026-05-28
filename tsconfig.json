@@ -11,7 +11,9 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "noEmit": true
   },
+  "include": ["packages/**/*.ts"],
   "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }
