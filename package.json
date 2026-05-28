@@ -7,7 +7,7 @@
     "services/*"
   ],
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
+    "lint": "eslint . --ext .ts,.tsx --no-error-on-unmatched-pattern",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "echo \"Tests run per service\" && exit 0",
