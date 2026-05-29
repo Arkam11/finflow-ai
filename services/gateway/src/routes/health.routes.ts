@@ -28,7 +28,7 @@ const checkService = async (name: string, url: string): Promise<ServiceHealth> =
 
 router.get('/health', async (_req: Request, res: Response) => {
   const checks = await Promise.allSettled([
-    checkService('auth', env.services.auth),
+    checkService('auth', `${env.services.auth}/auth`),
     checkService('account', env.services.account),
     checkService('transaction', env.services.transaction),
     checkService('ai', env.services.ai),
