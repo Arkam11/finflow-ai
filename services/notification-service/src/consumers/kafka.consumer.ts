@@ -54,8 +54,21 @@ const handleMessage = async ({ topic, message }: EachMessagePayload): Promise<vo
 };
 
 export const startConsumer = async (): Promise<void> => {
-  consumer = kafka.consumer({ groupId: env.kafka.groupId });
+  const admin = kafka.admin();
+  await admin.connect();
 
+  await admin.createTopics({
+    waitForLeaders: true,
+    topics: [
+      { topic: KafkaTopic.TRANSACTION_CREATED, numPartitions: 1, replicationFactor: 1 },
+      { topic: KafkaTopic.TRANSACTION_FAILED, numPartitions: 1, replicationFactor: 1 },
+      { topic: KafkaTopic.FRAUD_ALERT, numPartitions: 1, replicationFactor: 1 },
+    ],
+  });
+  logger.info('Kafka topics ensured');
+  await admin.disconnect();
+
+  consumer = kafka.consumer({ groupId: env.kafka.groupId });
   await consumer.connect();
   logger.info('Kafka consumer connected');
 
@@ -65,9 +78,7 @@ export const startConsumer = async (): Promise<void> => {
   });
 
   await consumer.run({ eachMessage: handleMessage });
-  logger.info(
-    'Kafka consumer listening on topics: transaction.created, transaction.failed, fraud.alert',
-  );
+  logger.info('Kafka consumer listening on: transaction.created, transaction.failed, fraud.alert');
 };
 
 export const stopConsumer = async (): Promise<void> => {
