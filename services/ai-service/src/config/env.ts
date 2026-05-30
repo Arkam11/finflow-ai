@@ -7,9 +7,9 @@ export const env = {
   port: parseInt(process.env.PORT || '3004', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
-  anthropic: {
-    apiKey: process.env.ANTHROPIC_API_KEY || '',
-    model: process.env.AI_MODEL || 'claude-sonnet-4-20250514',
+  groq: {
+    apiKey: process.env.GROQ_API_KEY || '',
+    model: process.env.AI_MODEL || 'llama-3.3-70b-versatile',
   },
 
   jwt: {

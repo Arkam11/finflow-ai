@@ -12,7 +12,7 @@ const bootstrap = async (): Promise<void> => {
 
     const server = app.listen(env.port, () => {
       logger.info(`AI service running on port ${env.port}`);
-      logger.info(`Model: ${env.anthropic.model}`);
+      logger.info(`Model: ${env.groq.model}`);
     });
 
     const shutdown = () => {

@@ -1,4 +1,4 @@
-import Anthropic from '@anthropic-ai/sdk';
+import Groq from 'groq-sdk';
 import { Response } from 'express';
 import { env } from '../config/env';
 import { logger } from '../config/logger';
@@ -6,7 +6,7 @@ import { ChatMessage } from '../types/ai.types';
 import { getChatHistory, appendChatHistory } from './history.service';
 import { fetchUserTransactions, buildTransactionContext, analyzeSpending } from './context.service';
 
-const client = new Anthropic({ apiKey: env.anthropic.apiKey });
+const client = new Groq({ apiKey: env.groq.apiKey });
 
 const SYSTEM_PROMPT = `You are FinFlow AI, an expert personal financial assistant embedded in a banking platform.
 You have access to the user's real transaction history which is injected into every conversation as context.
@@ -57,18 +57,21 @@ Use the above transaction data to answer the user's questions accurately.`;
   let fullResponse = '';
 
   try {
-    const stream = client.messages.stream({
-      model: env.anthropic.model,
+    const stream = await client.chat.completions.create({
+      model: env.groq.model,
       max_tokens: 1024,
-      system: contextualSystemPrompt,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })),
+      stream: true,
+      messages: [
+        { role: 'system', content: contextualSystemPrompt },
+        ...messages.map((m) => ({ role: m.role, content: m.content })),
+      ],
     });
 
-    for await (const event of stream) {
-      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-        const chunk = event.delta.text;
-        fullResponse += chunk;
-        res.write(`data: ${JSON.stringify({ chunk })}\n\n`);
+    for await (const chunk of stream) {
+      const text = chunk.choices[0]?.delta?.content || '';
+      if (text) {
+        fullResponse += text;
+        res.write(`data: ${JSON.stringify({ chunk: text })}\n\n`);
       }
     }
 
@@ -86,7 +89,7 @@ Use the above transaction data to answer the user's questions accurately.`;
       responseLength: fullResponse.length,
     });
   } catch (error) {
-    logger.error('Claude API error', { error });
+    logger.error('Groq API error', { error });
     res.write(`data: ${JSON.stringify({ error: 'AI service error' })}\n\n`);
     res.end();
   }
@@ -114,15 +117,17 @@ Summary stats:
 - Most common type: ${analysis.topTransactionType}
 - Average transaction: ${analysis.averageAmount} ${analysis.currency}`;
 
-  const response = await client.messages.create({
-    model: env.anthropic.model,
+  const response = await client.chat.completions.create({
+    model: env.groq.model,
     max_tokens: 512,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: prompt }],
+    stream: false,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ],
   });
 
-  const content = response.content[0];
-  return content.type === 'text' ? content.text : 'Unable to generate analysis.';
+  return response.choices[0]?.message?.content || 'Unable to generate analysis.';
 };
 
 export const explainFraudAlert = async (
@@ -140,13 +145,15 @@ Amount: ${amount} ${currency}
 Risk Score: ${riskScore}/100
 Reason: ${reason}`;
 
-  const response = await client.messages.create({
-    model: env.anthropic.model,
+  const response = await client.chat.completions.create({
+    model: env.groq.model,
     max_tokens: 256,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: prompt }],
+    stream: false,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: prompt },
+    ],
   });
 
-  const content = response.content[0];
-  return content.type === 'text' ? content.text : 'Unable to explain fraud alert.';
+  return response.choices[0]?.message?.content || 'Unable to explain fraud alert.';
 };
