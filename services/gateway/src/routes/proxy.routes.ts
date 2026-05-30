@@ -6,11 +6,14 @@ import { logger } from '../config/logger';
 
 const router = Router();
 
-const makeProxy = (target: string, prefix: string) =>
+const makeProxy = (target: string, targetPath: string) =>
   createProxyMiddleware({
     target,
     changeOrigin: true,
-    pathRewrite: { '^/': `/${prefix}/` },
+    pathRewrite: (_path, req) => {
+      const url = req.url || '/';
+      return `/${targetPath}${url === '/' ? '' : url}`;
+    },
     on: {
       error: (err: Error, _req: unknown, res: unknown) => {
         logger.error('Proxy error', { target, error: err.message });
@@ -25,7 +28,6 @@ const makeProxy = (target: string, prefix: string) =>
   });
 
 router.use('/auth', makeProxy(env.services.auth, 'auth'));
-
 router.use('/accounts', verifyJwt, makeProxy(env.services.account, 'accounts'));
 router.use('/transactions', verifyJwt, makeProxy(env.services.transaction, 'transactions'));
 router.use('/ai', verifyJwt, makeProxy(env.services.ai, 'ai'));

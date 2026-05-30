@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #1976d2;
+  --color-secondary: #9c27b0;
+  --color-success: #2e7d32;
+  --color-warning: #ed6c02;
+  --color-error: #d32f2f;
+  --color-bg: #f5f5f5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--color-bg);
+}
+
+.sse-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.chat-message {
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
