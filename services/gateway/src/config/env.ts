@@ -27,5 +27,10 @@ export const env = {
     max: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   },
 
+  redis: {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: parseInt(process.env.REDIS_PORT || '6380', 10),
+  },
+
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
 };

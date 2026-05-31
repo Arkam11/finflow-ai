@@ -10,8 +10,8 @@ const makeProxy = (target: string, targetPath: string) =>
   createProxyMiddleware({
     target,
     changeOrigin: true,
-    pathRewrite: (_path, req) => {
-      const url = req.url || '/';
+    pathRewrite: (_path, req: unknown) => {
+      const url = (req as import('express').Request).url || '/';
       return `/${targetPath}${url === '/' ? '' : url}`;
     },
     on: {
