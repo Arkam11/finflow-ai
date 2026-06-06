@@ -11,7 +11,7 @@ export const pool = new Pool({
   max: 5,
 });
 
-pool.on('error', (err) => logger.error('Postgres pool error', { err }));
+pool.on('error', (err: Error) => logger.error('Postgres pool error', { err }));
 
 export const connectDatabase = async (): Promise<void> => {
   const client = await pool.connect();

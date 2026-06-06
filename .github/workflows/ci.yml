@@ -10,70 +10,104 @@ jobs:
   lint:
     name: Lint & Format check
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run ESLint
-        run: npm run lint
-
-      - name: Check Prettier formatting
-        run: npm run format:check
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
 
   test:
     name: Tests
     runs-on: ubuntu-latest
     needs: lint
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm test
+      - run: npm ci
+      - run: npm test
 
   build-check:
     name: Build check
     runs-on: ubuntu-latest
     needs: [lint, test]
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        env:
-          FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
+      - run: npm ci
+      - run: npx tsc --noEmit --project tsconfig.json
+      - run: echo "All checks passed - FinFlow AI CI pipeline green"
 
-      - name: Install dependencies
-        run: npm ci
+  build-images:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    needs: [lint, test, build-check]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: TypeScript compile check
-        run: npx tsc --noEmit --project tsconfig.json
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Pipeline complete
-        run: echo "All checks passed - FinFlow AI CI pipeline green"
+      - name: Build gateway image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/gateway
+          push: false
+          tags: finflow/gateway:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build auth-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/auth-service
+          push: false
+          tags: finflow/auth-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build transaction-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/transaction-service
+          push: false
+          tags: finflow/transaction-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build ai-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/ai-service
+          push: false
+          tags: finflow/ai-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build notification-service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/notification-service
+          push: false
+          tags: finflow/notification-service:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: All images built successfully
+        run: echo "Docker images built and verified for all services"

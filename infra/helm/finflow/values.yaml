@@ -1,0 +1,60 @@
+global:
+  image:
+    registry: finflow
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  env:
+    nodeEnv: production
+    jwtAccessSecret: "finflow_access_secret_change_in_production"
+    jwtRefreshSecret: "finflow_refresh_secret_change_in_production"
+
+gateway:
+  replicas: 2
+  port: 3000
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "300m"
+
+authService:
+  replicas: 2
+  port: 3001
+
+transactionService:
+  replicas: 2
+  port: 3003
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPU: 70
+
+aiService:
+  replicas: 2
+  port: 3004
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 6
+    targetCPU: 60
+
+notificationService:
+  replicas: 1
+  port: 3006
+
+postgres:
+  image: postgres:16-alpine
+  port: 5432
+  storage: 10Gi
+
+redis:
+  image: redis:7-alpine
+  port: 6379
+
+kafka:
+  image: apache/kafka:latest
+  port: 9092

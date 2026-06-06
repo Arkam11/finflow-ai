@@ -24,6 +24,6 @@ COPY --from=builder /app/dist ./dist
 
 USER finflow
 
-EXPOSE 3001
+EXPOSE 3006
 
 CMD ["node", "dist/index.js"]
