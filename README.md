@@ -20,23 +20,36 @@ The platform has two primary user groups: **banking customers** who can view acc
 
 ---
 
-## Architecture overviewBrowser (React :5173)
+## Architecture overview
 
-↓ Vite proxy
-API Gateway :3000 ─── JWT verification, rate limiting, GraphQL, REST proxy
-↓
-┌──────────────────────────────────────────────────────┐
-│ Auth Service :3001 Account Service :3002 │
-│ Transaction Svc :3003 AI Service :3004 │
-│ Analytics Svc :3005 Notification Svc :3006 │
-│ Fraud Service :3007 Retail Service :3008 │
-└──────────────────────────────────────────────────────┘
-↓ publish / subscribe
-Apache Kafka :9092 (KRaft mode, no Zookeeper)
-↓ persist / cache
-PostgreSQL :5432 + Redis :6379
-↓ deploy
+```
+Browser (React :5173)
+        |
+        v  [Vite proxy]
+API Gateway :3000
+JWT verification + rate limiting + GraphQL + REST proxy
+        |
+        v
++--------------------------------------------------+
+|  Auth Service         :3001                      |
+|  Account Service      :3002                      |
+|  Transaction Service  :3003                      |
+|  AI Service           :3004                      |
+|  Analytics Service    :3005                      |
+|  Notification Service :3006                      |
+|  Fraud Service        :3007                      |
+|  Retail Service       :3008                      |
++--------------------------------------------------+
+        |
+        v  [publish / subscribe]
+Apache Kafka :9092  (KRaft mode, no Zookeeper)
+        |
+        v  [persist / cache]
+PostgreSQL :5432  +  Redis :6379
+        |
+        v  [deploy]
 Kubernetes (minikube) with HPA + rolling updates
+```
 
 ---
 
@@ -64,13 +77,13 @@ Kubernetes (minikube) with HPA + rolling updates
 | ---------------------- | ---- | ----------------------------------------------------------------- |
 | `gateway`              | 3000 | API routing, JWT verification, rate limiting, GraphQL, REST proxy |
 | `auth-service`         | 3001 | OAuth2 login, JWT tokens, Redis sessions, RBAC                    |
-| `account-service`      | 3002 | Account management, balance queries _(Phase 9)_                   |
+| `account-service`      | 3002 | Account management, balance queries _(planned)_                   |
 | `transaction-service`  | 3003 | Fund transfers, fraud detection, Kafka publishing                 |
 | `ai-service`           | 3004 | LLM chat, RAG pipeline, spending analysis, fraud explanation      |
-| `analytics-service`    | 3005 | Real-time metrics aggregation _(Phase 9)_                         |
+| `analytics-service`    | 3005 | Real-time metrics aggregation _(planned)_                         |
 | `notification-service` | 3006 | Kafka consumer, email/SMS alerts                                  |
-| `fraud-service`        | 3007 | Rule-based + AI fraud scoring _(Phase 9)_                         |
-| `retail-service`       | 3008 | Merchant sales analytics _(Phase 9)_                              |
+| `fraud-service`        | 3007 | Rule-based + AI fraud scoring _(planned)_                         |
+| `retail-service`       | 3008 | Merchant sales analytics _(planned)_                              |
 
 ---
 
@@ -88,7 +101,7 @@ Kubernetes (minikube) with HPA + rolling updates
 
 ### Real-time transaction engine
 
-Every fund transfer goes through rule-based fraud scoring (0–100 risk score). Transfers above $50,000 or with suspicious patterns are automatically flagged, a `fraud.alert` Kafka event fires, and the notification service logs an alert in real time.
+Every fund transfer goes through rule-based fraud scoring (0-100 risk score). Transfers above $50,000 or with suspicious patterns are automatically flagged, a `fraud.alert` Kafka event fires, and the notification service logs an alert in real time.
 
 ### GenAI financial assistant (RAG)
 
@@ -100,7 +113,7 @@ Apollo Server 4 runs inside the gateway alongside REST. DataLoader solves the N+
 
 ### Kubernetes deployment
 
-All services are containerised with multi-stage Dockerfiles running as non-root users. Horizontal Pod Autoscalers scale the transaction service (2–8 pods) and AI service (2–6 pods) based on CPU and memory. Rolling updates ensure zero downtime on every deployment.
+All services are containerised with multi-stage Dockerfiles running as non-root users. Horizontal Pod Autoscalers scale the transaction service (2-8 pods) and AI service (2-6 pods) based on CPU and memory. Rolling updates ensure zero downtime on every deployment.
 
 ### GitHub Actions CI/CD
 
@@ -112,7 +125,7 @@ Every push triggers: lint → format check → TypeScript compile → Jest tests
 
 | Phase | What was built                                                                     |
 | ----- | ---------------------------------------------------------------------------------- |
-| 1     | GitHub monorepo, TypeScript, ESLint/Prettier/Husky, GitHub Actions CI              |
+| 1     | GitHub monorepo, TypeScript, ESLint + Prettier + Husky, GitHub Actions CI          |
 | 2     | Auth Service — OAuth2, JWT, Redis sessions, RBAC, 8 tests                          |
 | 3     | API Gateway — JWT middleware, proxy routing, rate limiting, health aggregation     |
 | 4     | Kafka Event Streaming — Transaction Service, Notification Service, fraud detection |
@@ -138,7 +151,7 @@ Every push triggers: lint → format check → TypeScript compile → Jest tests
 
 ### Prerequisites
 
-- Node.js 20 (via nvm)
+- Node.js 20 via nvm
 - Docker Desktop with WSL2 integration
 - Git with SSH key configured
 
@@ -151,22 +164,22 @@ docker compose up -d
 ### Start all services
 
 ```bash
-# Terminal 1
+# Terminal 1 — gateway
 cd services/gateway && npm run dev
 
-# Terminal 2
+# Terminal 2 — auth
 cd services/auth-service && npm run dev
 
-# Terminal 3
+# Terminal 3 — transactions
 cd services/transaction-service && npm run dev
 
-# Terminal 4
+# Terminal 4 — AI assistant
 cd services/ai-service && npm run dev
 
-# Terminal 5
+# Terminal 5 — notifications
 cd services/notification-service && npm run dev
 
-# Terminal 6
+# Terminal 6 — frontend
 cd apps/web && npm run dev
 ```
 
@@ -184,11 +197,15 @@ npm test
 
 ### GraphQL playground
 
-`http://localhost:3000/graphql`
+```
+http://localhost:3000/graphql
+```
 
 ### Prometheus metrics
 
-`http://localhost:3000/metrics`
+```
+http://localhost:3000/metrics
+```
 
 ---
 
@@ -210,8 +227,8 @@ Each service has a `.env.example` file. Key variables:
 
 ### Technical enhancements
 
-- **pgvector** — store transaction embeddings for semantic similarity search in the RAG pipeline (find transactions "similar" to a described pattern)
-- **Account Service** — full account CRUD, balance management, account-to-account transfer validation
+- **pgvector** — store transaction embeddings for semantic similarity search in the RAG pipeline
+- **Account Service** — full account CRUD, balance management, transfer validation
 - **Retail Analytics Service** — merchant dashboard with real-time sales aggregation from Kafka
 - **WebSocket gateway** — upgrade AI chat from SSE to bidirectional WebSocket
 - **Distributed tracing** — OpenTelemetry + Jaeger for end-to-end request tracing across microservices
@@ -220,11 +237,11 @@ Each service has a `.env.example` file. Key variables:
 
 ### Features to add
 
-- **Multi-factor authentication** — TOTP (Google Authenticator) as second factor after OAuth2
+- **Multi-factor authentication** — TOTP as second factor after OAuth2
 - **Transaction limits** — per-day and per-transaction limits configurable per user role
 - **Scheduled payments** — cron-based recurring transfers using BullMQ
-- **PDF statements** — generate monthly account statements with transaction history
-- **Merchant onboarding** — self-service merchant registration with KYC document upload
+- **PDF statements** — generate monthly account statements
+- **Merchant onboarding** — self-service registration with KYC document upload
 - **Push notifications** — FCM integration for mobile fraud alerts
 - **Admin panel** — user management, transaction override, fraud rule configuration
 
@@ -239,36 +256,39 @@ Each service has a `.env.example` file. Key variables:
 
 ## Folder structure
 
+```
 finflow-ai/
 ├── apps/
-│ └── web/ # React frontend (Vite + TypeScript)
+│   └── web/                     # React frontend (Vite + TypeScript)
 ├── services/
-│ ├── gateway/ # API Gateway (Express + Apollo GraphQL)
-│ ├── auth-service/ # Authentication (JWT + OAuth2)
-│ ├── transaction-service/ # Transactions + Fraud detection
-│ ├── ai-service/ # GenAI assistant (Groq + RAG)
-│ └── notification-service/ # Kafka consumer + alerts
+│   ├── gateway/                 # API Gateway (Express + Apollo GraphQL)
+│   ├── auth-service/            # Authentication (JWT + OAuth2)
+│   ├── transaction-service/     # Transactions + Fraud detection
+│   ├── ai-service/              # GenAI assistant (Groq + RAG)
+│   └── notification-service/    # Kafka consumer + alerts
 ├── packages/
-│ └── shared/ # Shared TypeScript types
+│   └── shared/                  # Shared TypeScript types
 ├── infra/
-│ ├── k8s/ # Kubernetes manifests
-│ │ ├── configmaps/
-│ │ ├── secrets/
-│ │ ├── deployments/
-│ │ ├── hpa/
-│ │ └── ingress/
-│ └── helm/finflow/ # Helm chart
+│   ├── k8s/                     # Kubernetes manifests
+│   │   ├── configmaps/
+│   │   ├── secrets/
+│   │   ├── deployments/
+│   │   ├── hpa/
+│   │   └── ingress/
+│   └── helm/finflow/            # Helm chart
 ├── scripts/
-│ └── generate-test-token.js # JWT test token generator
-├── docker-compose.yml # Local infrastructure
-├── .github/workflows/ci.yml # GitHub Actions pipeline
-└── package.json # Monorepo root (npm workspaces)
+│   └── generate-test-token.js   # JWT test token generator
+├── docker-compose.yml           # Local infrastructure
+├── .github/workflows/ci.yml     # GitHub Actions pipeline
+└── package.json                 # Monorepo root (npm workspaces)
+```
 
 ---
 
 ## Author
 
-**Arkam Mohammed** — Full Stack Developer  
+**Arkam Mohammed** — Full Stack Developer
+
 Built as a portfolio project demonstrating senior-level engineering for enterprise financial platforms.
 
 GitHub: [github.com/Arkam11](https://github.com/Arkam11)
