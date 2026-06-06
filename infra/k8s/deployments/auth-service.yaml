@@ -31,7 +31,7 @@ spec:
                 name: finflow-secrets
           env:
             - name: PORT
-              value: "3001"
+              value: '3001'
           livenessProbe:
             httpGet:
               path: /auth/health
@@ -46,11 +46,11 @@ spec:
             periodSeconds: 5
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "100m"
+              memory: '128Mi'
+              cpu: '100m'
             limits:
-              memory: "256Mi"
-              cpu: "300m"
+              memory: '256Mi'
+              cpu: '300m'
 ---
 apiVersion: v1
 kind: Service

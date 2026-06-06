@@ -4,24 +4,24 @@ metadata:
   name: finflow-common-config
   namespace: finflow
 data:
-  NODE_ENV: "production"
-  DB_HOST: "postgres-service"
-  DB_PORT: "5432"
-  DB_NAME: "finflow_db"
-  REDIS_HOST: "redis-service"
-  REDIS_PORT: "6379"
-  KAFKA_BROKERS: "kafka-service:9092"
-  CLIENT_URL: "http://localhost:5173"
-  AUTH_SERVICE_URL: "http://auth-service:3001"
-  ACCOUNT_SERVICE_URL: "http://account-service:3002"
-  TRANSACTION_SERVICE_URL: "http://transaction-service:3003"
-  AI_SERVICE_URL: "http://ai-service:3004"
-  ANALYTICS_SERVICE_URL: "http://analytics-service:3005"
-  NOTIFICATION_SERVICE_URL: "http://notification-service:3006"
-  FRAUD_SERVICE_URL: "http://fraud-service:3007"
-  RETAIL_SERVICE_URL: "http://retail-service:3008"
-  AI_MODEL: "llama-3.3-70b-versatile"
-  MAX_CONTEXT_TRANSACTIONS: "20"
-  CHAT_HISTORY_TTL: "3600"
-  RATE_LIMIT_WINDOW_MS: "900000"
-  RATE_LIMIT_MAX: "100"
+  NODE_ENV: 'production'
+  DB_HOST: 'postgres-service'
+  DB_PORT: '5432'
+  DB_NAME: 'finflow_db'
+  REDIS_HOST: 'redis-service'
+  REDIS_PORT: '6379'
+  KAFKA_BROKERS: 'kafka-service:9092'
+  CLIENT_URL: 'http://localhost:5173'
+  AUTH_SERVICE_URL: 'http://auth-service:3001'
+  ACCOUNT_SERVICE_URL: 'http://account-service:3002'
+  TRANSACTION_SERVICE_URL: 'http://transaction-service:3003'
+  AI_SERVICE_URL: 'http://ai-service:3004'
+  ANALYTICS_SERVICE_URL: 'http://analytics-service:3005'
+  NOTIFICATION_SERVICE_URL: 'http://notification-service:3006'
+  FRAUD_SERVICE_URL: 'http://fraud-service:3007'
+  RETAIL_SERVICE_URL: 'http://retail-service:3008'
+  AI_MODEL: 'llama-3.3-70b-versatile'
+  MAX_CONTEXT_TRANSACTIONS: '20'
+  CHAT_HISTORY_TTL: '3600'
+  RATE_LIMIT_WINDOW_MS: '900000'
+  RATE_LIMIT_MAX: '100'

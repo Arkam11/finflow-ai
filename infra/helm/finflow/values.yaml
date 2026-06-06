@@ -6,19 +6,19 @@ global:
 
   env:
     nodeEnv: production
-    jwtAccessSecret: "finflow_access_secret_change_in_production"
-    jwtRefreshSecret: "finflow_refresh_secret_change_in_production"
+    jwtAccessSecret: 'finflow_access_secret_change_in_production'
+    jwtRefreshSecret: 'finflow_refresh_secret_change_in_production'
 
 gateway:
   replicas: 2
   port: 3000
   resources:
     requests:
-      memory: "128Mi"
-      cpu: "100m"
+      memory: '128Mi'
+      cpu: '100m'
     limits:
-      memory: "256Mi"
-      cpu: "300m"
+      memory: '256Mi'
+      cpu: '300m'
 
 authService:
   replicas: 2
